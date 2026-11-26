@@ -3,7 +3,7 @@
 **100% Pure Rust co-located sidecar accelerator for zero-copy vector & text-chunk dataflows.**  
 Single Fedora 45 container · Read-only `mprotect(PROT_READ)` HugePages vector pool · Raw binary TCP conduit (`:9090`) · Built-in `1.3 KB` `no_std` Rust WebAssembly studio (`:8080`).
 
-[English](./README.md) | [繁體中文](./README.zh-TW.md) | [Contributing](./CONTRIBUTING.md) | [AI / Agent Index (`llms.txt`)](./llms.txt) | [Companion DB: 🍄 SporeVault](https://github.com/exefncs2/sporevault)
+[English](./README.md) | [繁體中文](./README.zh-TW.md) | [Contributing](./CONTRIBUTING.md) | [AI / Agent Index (`llms.txt`)](./llms.txt) | [🍄 SporeVault](https://github.com/exefncs2/sporevault) | [🛡️ SporeGuard](https://github.com/exefncs2/sporeguard)
 
 ![SporeFlow Web Studio](./docs/sporeflow-preview.png)
 
