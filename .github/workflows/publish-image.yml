@@ -60,7 +60,7 @@ jobs:
             ${{ env.DOCKERHUB_USER }}/sporeflow:fedora45
 
       - name: Trivy Filesystem & Rust Dependency Vulnerability Scan
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -69,7 +69,7 @@ jobs:
           exit-code: '0'
 
       - name: Trivy Container Image CVE Scan (GHCR)
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: 'ghcr.io/exefncs2/sporeflow:latest'
           format: 'table'
