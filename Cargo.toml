@@ -10,7 +10,7 @@ license = "MIT"
 [dependencies]
 libc = "0.2"
 kvm-ioctls = "0.19"
-kvm-bindings = "0.10"
+kvm-bindings = "0.14"
 
 [profile.release]
 opt-level = 3
