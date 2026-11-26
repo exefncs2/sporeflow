@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push image to GHCR
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Containerfile
@@ -50,7 +50,7 @@ jobs:
 
       - name: Push image to Docker Hub (optional)
         if: env.DOCKERHUB_USER != '' && env.DOCKERHUB_PASS != ''
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Containerfile
