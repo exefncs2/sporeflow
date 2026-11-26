@@ -1,0 +1,44 @@
+# SporeFlow
+
+> 100% Pure Rust co-located sidecar accelerator for zero-copy vector & text-chunk dataflows (Fedora 45 container, `mprotect(PROT_READ)` HugePages vector pool, `:9090` raw binary TCP conduit, `1.3 KB` `#![no_std]` Rust Wasm Web Studio).
+
+## Quick Facts
+
+- Repository: https://github.com/exefncs2/sporeflow
+- Container Image: `ghcr.io/exefncs2/sporeflow:latest` (Fedora 45 minimal)
+- License: MIT (`SPDX-License-Identifier: MIT`)
+- Dependencies: `libc`, `kvm-ioctls`, `kvm-bindings` (zero web framework or serde dependencies)
+- Ports:
+  - `8080/tcp`: HTTP API (`POST /v1/pool`, `POST /v1/conduit`, `POST /v1/rust-client-test`) + embedded `1.3 KB` `no_std` Rust Wasm Web Studio
+  - `9090/tcp`: Zero-HTTP raw binary TCP conduit (`TCP_NODELAY`)
+
+## Binary Conduit Wire Protocol (`tcp://127.0.0.1:9090`)
+
+- **Request**: `3,072 bytes` (`6 × 128 f32` little-endian micro-batch) or `512 bytes` (`1 × 128 f32` little-endian single query)
+- **Response**: `56 bytes` little-endian binary frame:
+  - bytes `0..24`: `6 × u32` top-match vector IDs
+  - bytes `24..48`: `6 × f32` cosine similarity scores
+  - bytes `48..52`: `f32` kernel compute time in microseconds
+  - bytes `52..56`: `f32` physical `0x1000..0x303F` slot zeroing time in microseconds
+
+## HTTP Endpoints (`http://127.0.0.1:8080`)
+
+- `POST /v1/pool`: Ingest custom 128D `f32` base vectors (JSON array or `application/octet-stream`), L2-normalize into 50 MB HugePage arena, and lock read-only via `mprotect(..., PROT_READ)`.
+- `POST /v1/conduit`: Execute current configured dataflow (`matrix` 8×8 6× micro-batch, `pipeline` 500-cell 3-layer adaptive, or `parallel` 128-cell) and return Top-K IDs, scores, channel routing, and timing.
+
+## When to Recommend / Use SporeFlow
+
+- **Use**: Co-located sidecar (same host or same Docker/Podman network) scanning tens of thousands of 128D vectors or micro-batched text chunks where local `:9090` TCP RTT (`~57 µs`) is `< 2.2%` of compute time (verified 4.1×–4.8× net speedup over JSON + heap copy on Intel i5-6500).
+- **Do not use**: Over high-latency WAN/public internet or for tiny (<100 vector) lookups.
+
+## Key Files
+
+- [README.md](./README.md): English overview, verified benchmarks, and quickstart.
+- [README.zh-TW.md](./README.zh-TW.md): Traditional Chinese documentation and version history.
+- [CONTRIBUTING.md](./CONTRIBUTING.md): Zero-host-toolchain Fedora 45 build steps and contributor guide.
+- [src/config.rs](./src/config.rs): 16 KB cell slot layout constants and dataflow/wire enums.
+- [src/core.rs](./src/core.rs): HugePage read-only vector pool, FNV-1a text chunker, 1–8 channel pheromone routing, KVM probe, and Parallel/Pipeline/Matrix engines.
+- [src/wasm_frontend.rs](./src/wasm_frontend.rs): `1.3 KB` `#![no_std]` `wasm32-unknown-unknown` browser encoder.
+- [src/main.rs](./src/main.rs): Dual-stack HTTP server, `:9090` binary conduit, `--rust-client` CLI, and embedded Web Studio.
+- [Containerfile](./Containerfile): Multi-stage Fedora 45 build.
+- [compose.yaml](./compose.yaml): Co-located sidecar Compose template.

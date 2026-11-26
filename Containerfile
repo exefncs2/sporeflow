@@ -1,5 +1,5 @@
 # ==============================================================================
-# Mycelial Cellular Vector Engine — Fedora 45 (Bazzite 45 Compatible) Container
+# SporeFlow — 100% Pure Rust Co-Located Sidecar Accelerator (Fedora 45)
 # ==============================================================================
 ARG BASE_IMAGE=registry.fedoraproject.org/fedora-minimal:45
 
@@ -19,21 +19,22 @@ COPY Cargo.toml ./
 COPY src ./src
 
 # 1. 先將瀏覽器前端核心編譯為真正的 `no_std` Rust WebAssembly (`wasm32-unknown-unknown`) 二進位模組
-RUN rustc --target wasm32-unknown-unknown -O --crate-type=cdylib src/wasm_frontend.rs -o src/mycelial_client.wasm
+RUN rustc --target wasm32-unknown-unknown -O --crate-type=cdylib src/wasm_frontend.rs -o src/sporeflow_client.wasm
 
-# 2. 再編譯後端母體引擎（透過 `include_bytes!("mycelial_client.wasm")` 將前端 Rust Wasm 封裝於單一執行檔內）
+# 2. 再編譯後端母體引擎（透過 `include_bytes!("sporeflow_client.wasm")` 將前端 Rust Wasm 封裝於單一執行檔內）
 RUN cargo build --release
 
 # Stage 2: 使用與 Bazzite 45 同源之 Fedora 45 Minimal 作為極簡執行環境
 FROM ${BASE_IMAGE}
 
-LABEL org.opencontainers.image.title="Mycelial Cellular Vector Engine"
-LABEL org.opencontainers.image.description="Bare-metal micro-cell dataflow, 500-cell spiking neural graph & read-only HugePages vector engine on Fedora 45"
+LABEL org.opencontainers.image.title="SporeFlow"
+LABEL org.opencontainers.image.description="Zero-copy pure-Rust co-located sidecar accelerator (Parallel / Pipeline / Matrix dataflows, 1.3KB no_std Wasm UI, :9090 raw binary conduit) on Fedora 45"
+LABEL org.opencontainers.image.source="https://github.com/exefncs2/sporeflow"
 LABEL org.opencontainers.image.licenses="MIT"
 
-COPY --from=builder /build/target/release/mycelial-vector-engine /usr/local/bin/mycelial-vector-engine
+COPY --from=builder /build/target/release/sporeflow /usr/local/bin/sporeflow
 
 EXPOSE 8080 9090
 
-ENTRYPOINT ["/usr/local/bin/mycelial-vector-engine"]
+ENTRYPOINT ["/usr/local/bin/sporeflow"]
 

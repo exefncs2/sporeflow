@@ -1,8 +1,10 @@
 [package]
-name = "mycelial-vector-engine"
-version = "0.1.0"
+name = "sporeflow"
+version = "0.4.0"
 edition = "2021"
-description = "Mycelial Cellular Vector Engine: Bare-metal micro-cell dataflow & vector sandbox"
+description = "SporeFlow: Zero-copy pure-Rust co-located sidecar accelerator with Fedora 45, KVM probe, 1.3KB no_std Wasm UI, and raw binary :9090 conduit"
+repository = "https://github.com/exefncs2/sporeflow"
+homepage = "https://github.com/exefncs2/sporeflow"
 license = "MIT"
 
 [dependencies]

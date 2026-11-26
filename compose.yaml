@@ -1,7 +1,7 @@
 services:
-  mycelial-engine:
-    image: ghcr.io/exefncs2/mycelial-vector-engine:latest
-    container_name: mycelial-engine
+  sporeflow:
+    image: ghcr.io/exefncs2/sporeflow:latest
+    container_name: sporeflow
     command: ["--web"]
     ports:
       - "8080:8080"

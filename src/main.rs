@@ -22,7 +22,7 @@ use crate::core::{
 };
 
 /// 內嵌於執行檔內的純 Rust WebAssembly 前端核心 (`wasm32-unknown-unknown`)
-const MYCELIAL_CLIENT_WASM: &[u8] = include_bytes!("mycelial_client.wasm");
+const SPOREFLOW_CLIENT_WASM: &[u8] = include_bytes!("sporeflow_client.wasm");
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::sync::Arc;
@@ -213,17 +213,17 @@ fn handle_http_client(
         let _ = stream.write_all(resp.as_bytes());
         let _ = stream.flush();
         let _ = stream.shutdown(Shutdown::Write);
-        println!("\n🛑 收到網頁端關閉指令，Mycelial Web 競技場已安全退出。");
+        println!("\n🛑 收到網頁端關閉指令，SporeFlow Web Studio 已安全退出。");
         std::process::exit(0);
     }
 
-    if first_line.starts_with("GET /mycelial_client.wasm") {
+    if first_line.starts_with("GET /sporeflow_client.wasm") {
         let header = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: application/wasm\r\nContent-Length: {}\r\nCache-Control: no-cache\r\nConnection: close\r\nAccess-Control-Allow-Origin: *\r\n\r\n",
-            MYCELIAL_CLIENT_WASM.len()
+            SPOREFLOW_CLIENT_WASM.len()
         );
         let _ = stream.write_all(header.as_bytes());
-        let _ = stream.write_all(MYCELIAL_CLIENT_WASM);
+        let _ = stream.write_all(SPOREFLOW_CLIENT_WASM);
         let _ = stream.flush();
         let _ = stream.shutdown(Shutdown::Write);
         return;
@@ -233,7 +233,7 @@ fn handle_http_client(
         let sample_batch = build_micro_batch_queries();
         let json_payload = serialize_micro_batch_to_json(&sample_batch);
         let resp = format!(
-            "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: attachment; filename=\"mycelial_sample_vectors.json\"\r\nContent-Length: {}\r\nConnection: close\r\nAccess-Control-Allow-Origin: *\r\n\r\n{}",
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: attachment; filename=\"sporeflow_sample_vectors.json\"\r\nContent-Length: {}\r\nConnection: close\r\nAccess-Control-Allow-Origin: *\r\n\r\n{}",
             json_payload.as_bytes().len(),
             json_payload
         );
@@ -1099,7 +1099,7 @@ fn run_interactive_web_arena(engine: Arc<SporeHubEngine>, port: u16) {
         .unwrap_or_else(|e| panic!("無法綁定 Web 競技場埠號 {port}: {e}"));
 
     println!("================================================================================");
-    println!(" 🌐 Mycelial Interactive Web Studio & Direct Conduit 已啟動！");
+    println!(" 🍄 SporeFlow Interactive Web Studio & Direct Conduit 已啟動！");
     println!("    ├─ 網頁控制台 & HTTP API : http://localhost:{port}");
     println!("    │    ├─ 灌入自訂基底向量池 : POST http://localhost:{port}/v1/pool (JSON 或 Raw Float32)");
     println!("    │    └─ 通過通道加速輸出   : POST http://localhost:{port}/v1/conduit (JSON 或 Raw Float32)");
@@ -1125,7 +1125,7 @@ const WEB_STUDIO_HTML: &str = r##"<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍄 Mycelial Cellular Vector Engine — 真實加速通道 & 視覺比較實驗室</title>
+<title>🍄 SporeFlow — 純 Rust 同機零拷貝加速通道 & 視覺比較實驗室</title>
 <style>
   :root {
     --bg: #0b0f17;
@@ -1216,7 +1216,7 @@ const WEB_STUDIO_HTML: &str = r##"<!DOCTYPE html>
 
 <header>
   <h1>
-    🍄 Mycelial Engine
+    🍄 SporeFlow
     <span class="badge">Fedora 45 KVM v0.4.0</span>
     <span class="badge" id="wasmStatusBadge" style="border-color:#f59e0b;color:#fde68a;background:rgba(245,158,11,0.12);">🦀 Rust Wasm 載入中...</span>
   </h1>
@@ -1426,7 +1426,7 @@ const WEB_STUDIO_HTML: &str = r##"<!DOCTYPE html>
         </div>
         <div style="background:#090d14;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:0.74rem;line-height:1.55;">
           <div style="color:#34d399;font-weight:700;margin-bottom:4px;">🦀 2. 現實 Rust 應用程式零 HTTP 直連 (:9090) 接入範例</div>
-          <pre style="color:#6ee7b7;background:#05080f;padding:8px;border-radius:4px;overflow-x:auto;font-size:0.71rem;">// 100% Pure Rust Client (或執行: mycelial-vector-engine --rust-client)
+          <pre style="color:#6ee7b7;background:#05080f;padding:8px;border-radius:4px;overflow-x:auto;font-size:0.71rem;">// 100% Pure Rust Client (或執行: sporeflow --rust-client)
 let mut sock = std::net::TcpStream::connect("127.0.0.1:9090")?;
 sock.set_nodelay(true)?;
 sock.write_all(&amp;receptor_3072_bytes)?; // 6x128 f32 直刷 0x1000
@@ -1599,7 +1599,7 @@ sock.write_all(&raw_3072_bytes)?; sock.read_exact(&mut out_56_bytes)?; // :9090 
   async function initRustWasmFrontend() {
     const badge = document.getElementById('wasmStatusBadge');
     try {
-      const resp = await fetch('/mycelial_client.wasm');
+      const resp = await fetch('/sporeflow_client.wasm');
       const wasmBytes = await resp.arrayBuffer();
       wasmBinarySize = wasmBytes.byteLength;
       const { instance } = await WebAssembly.instantiate(wasmBytes, {});
@@ -1701,7 +1701,7 @@ sock.write_all(&raw_3072_bytes)?; sock.read_exact(&mut out_56_bytes)?; // :9090 
       if (cfgBox) {
         const activeHealthy = (d.channels || []).filter(c => !c.severed && c.penalty < 20000).map(c => c.id);
         cfgBox.innerText = `// 已同步當前網頁方塊設定 (可直接供現實 Rust 應用載入)
-MycelialRuntimeConfig {
+SporeFlowConfig {
     wire_medium: "${medium}",          // ${d.applied_medium}
     dataflow_topology: "${flow}",      // ${d.applied_topology}
     active_channels: ${channels},              // 優先路由健康通道: ${JSON.stringify(activeHealthy)}
@@ -1973,7 +1973,7 @@ MycelialRuntimeConfig {
   async function shutdownServer() {
     document.getElementById('raceStatusBadge').innerText = '🛑 正在關閉伺服器...';
     try { await fetch('/api/shutdown', { method: 'POST' }); } catch (_) {}
-    document.body.innerHTML = '<div style="padding:60px;text-align:center;color:#34d399;font-size:1.3rem;">🛑 Mycelial Web 競技場已安全關閉，容器已退出。</div>';
+    document.body.innerHTML = '<div style="padding:60px;text-align:center;color:#34d399;font-size:1.3rem;">🛑 SporeFlow Web Studio 已安全關閉，容器已退出。</div>';
   }
 
   // =========================================================================
@@ -2168,7 +2168,7 @@ MycelialRuntimeConfig {
 "##;
 
 extern "C" fn handle_sigint(_sig: libc::c_int) {
-    println!("\n🛑 收到中斷訊號 (Ctrl+C)，Mycelial Engine 正在安全退出...");
+    println!("\n🛑 收到中斷訊號 (Ctrl+C)，SporeFlow 正在安全退出...");
     std::process::exit(0);
 }
 
@@ -2186,7 +2186,7 @@ fn install_signal_handlers() {
 /// 3. 直接透過原生 Rust `TcpStream` 連上 `127.0.0.1:9090` 零 HTTP 二進位直連埠高速收發 56 Bytes 結果封包！
 fn run_pure_rust_client_cli(web_port: u16, bin_port: u16) {
     println!("================================================================================");
-    println!(" 🦀 Mycelial 100% Pure Rust Native Application Client (--rust-client)");
+    println!(" 🦀 SporeFlow 100% Pure Rust Native Application Client (--rust-client)");
     println!("    測試項目：任意文字檔切塊 ➔ /v1/pool 唯讀池灌入 ➔ :9090 零 HTTP 純二進位 Socket 直連");
     println!("================================================================================\n");
 
@@ -2301,7 +2301,7 @@ fn main() {
     }
 
     println!("================================================================================");
-    println!(" 🍄 Mycelial Cellular Vector Engine v0.3.0 (Fedora 45 / Bazzite KVM Edition)");
+    println!(" 🍄 SporeFlow v0.4.0 (Fedora 45 / Bazzite KVM Edition)");
     println!("    四大傳輸介質轉檔競速 + 三大零拷貝算力流 (並流 / 串流 / 矩陣流) + 動態通道");
     println!("    (提示：加上 `--web` 並映射 `-p 8080:8080` 可啟動網頁拖曳方塊與檔案上傳競技場)");
     println!("================================================================================\n");

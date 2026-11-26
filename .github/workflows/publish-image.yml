@@ -37,9 +37,9 @@ jobs:
           file: ./Containerfile
           push: true
           tags: |
-            ghcr.io/exefncs2/mycelial-vector-engine:latest
-            ghcr.io/exefncs2/mycelial-vector-engine:fedora45
-            ghcr.io/exefncs2/mycelial-vector-engine:${{ github.sha }}
+            ghcr.io/exefncs2/sporeflow:latest
+            ghcr.io/exefncs2/sporeflow:fedora45
+            ghcr.io/exefncs2/sporeflow:${{ github.sha }}
 
       - name: Log in to Docker Hub (optional)
         if: env.DOCKERHUB_USER != '' && env.DOCKERHUB_PASS != ''
@@ -56,5 +56,5 @@ jobs:
           file: ./Containerfile
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USER }}/mycelial-vector-engine:latest
-            ${{ env.DOCKERHUB_USER }}/mycelial-vector-engine:fedora45
+            ${{ env.DOCKERHUB_USER }}/sporeflow:latest
+            ${{ env.DOCKERHUB_USER }}/sporeflow:fedora45
