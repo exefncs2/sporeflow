@@ -3,7 +3,7 @@
 **100% Pure Rust co-located sidecar accelerator for zero-copy vector & text-chunk dataflows.**  
 Single Fedora 45 container · Read-only `mprotect(PROT_READ)` HugePages vector pool · Raw binary TCP conduit (`:9090`) · Built-in `1.3 KB` `no_std` Rust WebAssembly studio (`:8080`).
 
-[English](./README.md) | [繁體中文](./README.zh-TW.md) | [Contributing](./CONTRIBUTING.md) | [AI / Agent Index (`llms.txt`)](./llms.txt)
+[English](./README.md) | [繁體中文](./README.zh-TW.md) | [Contributing](./CONTRIBUTING.md) | [AI / Agent Index (`llms.txt`)](./llms.txt) | [Companion DB: 🍄 SporeVault](https://github.com/exefncs2/sporevault)
 
 ![SporeFlow Web Studio](./docs/sporeflow-preview.png)
 
@@ -51,11 +51,11 @@ All numbers below are measured directly on local hardware (not extrapolated):
 ### 1. Run the Public Fedora 45 Container (No Rust Toolchain Needed)
 
 ```bash
-# Linux with /dev/kvm
-docker run --rm -it --device /dev/kvm -p 8080:8080 -p 9090:9090 ghcr.io/exefncs2/sporeflow:latest --web
+# Docker Hub (shortest)
+docker run --rm -it -p 127.0.0.1:8080:8080 -p 127.0.0.1:9090:9090 exefncs2/sporeflow:latest --web
 
-# macOS / Windows / Cloud VM without /dev/kvm (automatic user-space fallback)
-docker run --rm -it -p 8080:8080 -p 9090:9090 ghcr.io/exefncs2/sporeflow:latest --web
+# Linux with /dev/kvm (GHCR)
+docker run --rm -it --device /dev/kvm -p 127.0.0.1:8080:8080 -p 127.0.0.1:9090:9090 ghcr.io/exefncs2/sporeflow:latest --web
 ```
 
 Or run as a sidecar with [compose.yaml](./compose.yaml):

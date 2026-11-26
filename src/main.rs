@@ -141,7 +141,7 @@ fn handle_http_client(
     let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
     let _ = stream.set_nodelay(true);
 
-    let mut buf = vec![0u8; 512 * 1024];
+    let mut buf = vec![0u8; 4 * 1024 * 1024];
     let mut total_read = 0usize;
     let mut header_end_pos: Option<usize> = None;
     let mut expected_total = 0usize;
@@ -1125,36 +1125,44 @@ const WEB_STUDIO_HTML: &str = r##"<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍄 SporeFlow — 純 Rust 同機零拷貝加速通道 & 視覺比較實驗室</title>
+<title>🍄 SporeFlow</title>
 <style>
   :root {
-    --bg: #0b0f17;
-    --panel: #131a27;
-    --border: #263248;
-    --accent: #10b981;
-    --accent-glow: rgba(16, 185, 129, 0.35);
-    --cyan: #06b6d4;
-    --amber: #f59e0b;
+    --bg: #070d0b;
+    --panel: rgba(13, 23, 20, 0.92);
+    --border: #1f3b32;
+    --accent: #34d399;
+    --accent-glow: rgba(52, 211, 153, 0.35);
+    --cyan: #2dd4bf;
+    --amber: #fbbf24;
     --danger: #ef4444;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
+    --text: #e6f4ef;
+    --muted: #8ba99f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, monospace; }
-  body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+  body {
+    background:
+      radial-gradient(circle at 12% 10%, rgba(45,212,191,0.12), transparent 36%),
+      radial-gradient(circle at 88% 18%, rgba(52,211,153,0.10), transparent 40%),
+      radial-gradient(circle at 50% 95%, rgba(192,132,252,0.08), transparent 45%),
+      var(--bg);
+    color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
+  }
   header {
-    background: linear-gradient(90deg, #0f172a, #132238);
+    background: linear-gradient(135deg, rgba(18,34,29,0.95), rgba(10,20,17,0.95));
     border-bottom: 1px solid var(--border);
-    padding: 10px 18px;
+    padding: 12px 18px;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
   }
-  header h1 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; color: #34d399; }
-  .badge { background: rgba(16,185,129,0.15); border: 1px solid var(--accent); color: #6ee7b7; padding: 3px 10px; border-radius: 999px; font-size: 0.74rem; }
-  .nav-tabs { display: flex; gap: 8px; background: #090d14; padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+  header h1 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: #34d399; text-shadow: 0 0 16px rgba(52,211,153,0.3); }
+  .badge { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.45); color: #a7f3d0; padding: 3px 10px; border-radius: 999px; font-size: 0.73rem; }
+  .nav-tabs { display: flex; gap: 6px; background: #07100d; padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
   .tab-btn {
-    background: transparent; color: var(--muted); border: none; padding: 8px 16px;
-    border-radius: 7px; cursor: pointer; font-size: 0.84rem; font-weight: 700; transition: all 0.15s;
+    background: transparent; color: var(--muted); border: none; padding: 7px 14px;
+    border-radius: 7px; cursor: pointer; font-size: 0.82rem; font-weight: 700; transition: all 0.15s;
   }
-  .tab-btn.active { background: linear-gradient(90deg, #10b981, #06b6d4); color: #052e16; box-shadow: 0 0 12px var(--accent-glow); }
+  .tab-btn.active { background: linear-gradient(135deg, #10b981, #14b8a6); color: #04241a; box-shadow: 0 0 12px var(--accent-glow); }
   .top-actions { display: flex; gap: 8px; align-items: center; }
   button {
     background: var(--accent); color: #052e16; font-weight: 700; border: none;
@@ -1216,25 +1224,34 @@ const WEB_STUDIO_HTML: &str = r##"<!DOCTYPE html>
 
 <header>
   <h1>
-    🍄 SporeFlow
-    <span class="badge">Fedora 45 KVM v0.4.0</span>
-    <span class="badge" id="wasmStatusBadge" style="border-color:#f59e0b;color:#fde68a;background:rgba(245,158,11,0.12);">🦀 Rust Wasm 載入中...</span>
+    <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+      <ellipse cx="32" cy="54" rx="16" ry="4" fill="rgba(52,211,153,0.25)"/>
+      <path d="M25 32 C25 44, 23 50, 26 53 L38 53 C41 50, 39 44, 39 32 Z" fill="#d1fae5"/>
+      <path d="M8 33 C8 16, 20 8, 32 8 C44 8, 56 16, 56 33 C47 36, 17 36, 8 33 Z" fill="#10b981" stroke="#6ee7b7" stroke-width="2"/>
+      <circle cx="22" cy="21" r="4" fill="#fef08a" opacity="0.9"/>
+      <circle cx="38" cy="17" r="3" fill="#fef08a" opacity="0.85"/>
+      <circle cx="44" cy="26" r="2.5" fill="#a7f3d0" opacity="0.9"/>
+    </svg>
+    SporeFlow
+    <span class="badge">v0.5 · :9090</span>
+    <span class="badge" id="wasmStatusBadge" style="border-color:#fbbf24;color:#fde68a;background:rgba(251,191,36,0.12);">🦀 Wasm...</span>
   </h1>
 
   <!-- 頂部雙頁面切換器 -->
   <div class="nav-tabs">
     <button class="tab-btn active" id="tabBtnConduit" onclick="switchPage('conduit')">
-      🚀 頁面 1：真實加速通道 (設定並流/串流/矩陣流 & 極速輸出)
+      🚀 真實加速通道
     </button>
     <button class="tab-btn" id="tabBtnBench" onclick="switchPage('bench')">
-      🎬 頁面 2：原速度視覺比較實驗室 (Benchmark vs 原速度)
+      🎬 速度比較實驗室
     </button>
   </div>
 
   <div class="top-actions">
-    <span id="raceStatusBadge" style="font-size:0.76rem;color:#34d399;">通道已就緒</span>
+    <span id="raceStatusBadge" style="font-size:0.75rem;color:#34d399;">通道就緒</span>
+    <a href="http://127.0.0.1:8081/" target="_blank" style="text-decoration:none;"><button class="secondary" style="border-color:#2dd4bf;color:#99f6e4;">🍄 SporeVault</button></a>
     <button class="secondary" onclick="downloadSampleJson()">📥 範例 JSON</button>
-    <button style="background:#ef4444;color:#fff;" onclick="shutdownServer()">🛑 關閉退出</button>
+    <button style="background:#ef4444;color:#fff;" onclick="shutdownServer()">🛑 關閉</button>
   </div>
 </header>
 

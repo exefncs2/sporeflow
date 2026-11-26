@@ -284,6 +284,7 @@ pub struct SharedReadOnlyVectorPool {
     ptr: *mut f32,
     byte_len: usize,
     vector_count: usize,
+    active_custom_count: std::sync::atomic::AtomicUsize,
     pub allocation_strategy: &'static str,
 }
 
@@ -354,6 +355,7 @@ impl SharedReadOnlyVectorPool {
             ptr: float_ptr,
             byte_len,
             vector_count,
+            active_custom_count: std::sync::atomic::AtomicUsize::new(0),
             allocation_strategy,
         })
     }
@@ -369,6 +371,12 @@ impl SharedReadOnlyVectorPool {
 
     pub fn vector_count(&self) -> usize {
         self.vector_count
+    }
+
+    /// 回傳最近一次透過 `/v1/pool` 灌入之自訂有效向量筆數（0 代表使用全池 100,000 筆壓測）
+    pub fn active_custom_count(&self) -> usize {
+        self.active_custom_count
+            .load(std::sync::atomic::Ordering::Acquire)
     }
 
     pub fn byte_len(&self) -> usize {
@@ -416,6 +424,8 @@ impl SharedReadOnlyVectorPool {
             if libc::mprotect(addr, self.byte_len, libc::PROT_READ) != 0 {
                 return Err("無法重新鎖定向量池為 PROT_READ 唯讀狀態".to_string());
             }
+            self.active_custom_count
+                .store(num_vecs, std::sync::atomic::Ordering::Release);
             Ok(num_vecs)
         }
     }
@@ -1514,20 +1524,38 @@ impl SporeHubEngine {
         vectors_per_mesh_cell: u32,
     ) -> MatrixMicroBatchSummary {
         let total_vectors = self.vector_pool.vector_count();
-        let stride = total_vectors / MATRIX_MESH_TOTAL_CELLS;
+        let custom_n = self.vector_pool.active_custom_count();
+        let use_custom_slice = custom_n > 0 && custom_n < total_vectors;
+        let stride = if use_custom_slice {
+            (custom_n + MATRIX_MESH_TOTAL_CELLS - 1) / MATRIX_MESH_TOTAL_CELLS
+        } else {
+            total_vectors / MATRIX_MESH_TOTAL_CELLS
+        };
 
         let t0 = Instant::now();
         let mut global_best_ids = [0u32; MATRIX_MICRO_BATCH_SIZE];
         let mut global_best_scores = [f32::NEG_INFINITY; MATRIX_MICRO_BATCH_SIZE];
+        let mut active_cells_used = 0usize;
+        let mut total_scanned_per_query = 0usize;
 
         for row in 0..MATRIX_MESH_ROWS {
             for col in 0..MATRIX_MESH_COLS {
                 let cell_idx = row * MATRIX_MESH_COLS + col;
+                let start_idx = cell_idx * stride;
+                let cell_scan = if use_custom_slice {
+                    if start_idx >= custom_n {
+                        continue;
+                    }
+                    (custom_n - start_idx).min(stride) as u32
+                } else {
+                    vectors_per_mesh_cell
+                };
+
                 let channel_id = self.pheromone_table.select_optimal_channel(cell_idx);
 
                 let receptor = self.slot_arena.receptor_mut(cell_idx);
-                receptor.pool_start_index = (cell_idx * stride) as u32;
-                receptor.scan_count = vectors_per_mesh_cell;
+                receptor.pool_start_index = start_idx as u32;
+                receptor.scan_count = cell_scan;
                 receptor.upstream_synapse_gain = 1.0;
                 receptor.spike_threshold = SPIKE_THRESHOLD;
                 receptor.active_batch_size = MATRIX_MICRO_BATCH_SIZE as u32;
@@ -1536,6 +1564,8 @@ impl SporeHubEngine {
                 receptor.batch_query_vectors = *batch_queries;
 
                 self.execute_matrix_micro_batch_cell(cell_idx, channel_id);
+                active_cells_used += 1;
+                total_scanned_per_query += cell_scan as usize;
 
                 let out = *self.slot_arena.cytoplasm_mut(cell_idx);
                 for b in 0..MATRIX_MICRO_BATCH_SIZE {
@@ -1549,12 +1579,11 @@ impl SporeHubEngine {
 
         let total_batch_us = t0.elapsed().as_secs_f64() * 1_000_000.0;
         let amortized_per_query_us = total_batch_us / (MATRIX_MICRO_BATCH_SIZE as f64);
-        let candidates_scanned_per_query =
-            MATRIX_MESH_TOTAL_CELLS * (vectors_per_mesh_cell as usize);
+        let candidates_scanned_per_query = total_scanned_per_query.max(1);
         let total_gemm_dot_products = candidates_scanned_per_query * MATRIX_MICRO_BATCH_SIZE;
 
         let z0 = Instant::now();
-        for cell_idx in 0..MATRIX_MESH_TOTAL_CELLS {
+        for cell_idx in 0..active_cells_used {
             self.slot_arena.macrophage_apoptosis_zero(cell_idx);
         }
         let apoptosis_zeroing_us = z0.elapsed().as_secs_f64() * 1_000_000.0;

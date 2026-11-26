@@ -1,6 +1,6 @@
 [package]
 name = "sporeflow"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "SporeFlow: Zero-copy pure-Rust co-located sidecar accelerator with Fedora 45, KVM probe, 1.3KB no_std Wasm UI, and raw binary :9090 conduit"
 repository = "https://github.com/exefncs2/sporeflow"
