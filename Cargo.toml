@@ -9,7 +9,7 @@ license = "MIT"
 
 [dependencies]
 libc = "0.2"
-kvm-ioctls = "0.19"
+kvm-ioctls = "0.25"
 kvm-bindings = "0.10"
 
 [profile.release]
