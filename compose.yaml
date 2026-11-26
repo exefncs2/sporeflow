@@ -1,0 +1,9 @@
+services:
+  mycelial-engine:
+    image: ghcr.io/exefncs2/mycelial-vector-engine:latest
+    container_name: mycelial-engine
+    command: ["--web"]
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    restart: unless-stopped

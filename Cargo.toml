@@ -1,0 +1,17 @@
+[package]
+name = "mycelial-vector-engine"
+version = "0.1.0"
+edition = "2021"
+description = "Mycelial Cellular Vector Engine: Bare-metal micro-cell dataflow & vector sandbox"
+license = "MIT"
+
+[dependencies]
+libc = "0.2"
+kvm-ioctls = "0.19"
+kvm-bindings = "0.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
